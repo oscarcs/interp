@@ -45,7 +45,7 @@ module.exports = class Parser {
     
     console.log(this.token);
     
-    if (expected && this.token.value !== expected) {
+    if (expected && this.token.id !== expected) {
       throw Error('Expected token with value "' + expected + '".');
     }
     
@@ -60,7 +60,7 @@ module.exports = class Parser {
     this.cur++;
     
     let value = tk.value;
-    let type = tk.name;
+    let type = tk.type;
     let obj = null;
     
     switch (type) {

@@ -84,7 +84,7 @@ module.exports = class Lexer {
       let token = this.getToken();
       if (!token) break;
       
-      if (token.name !== 'COMMENT') {
+      if (token.type !== 'COMMENT') {
         tokens.push(token);
       }
     }
@@ -127,7 +127,7 @@ module.exports = class Lexer {
     // check optable, then check for identifiers and literals.
     
     if (op !== undefined) {
-      return {name: 'SYMBOL', value: op, pos: this.pos++};
+      return {type: 'SYMBOL', value: op, pos: this.pos++};
     }
     else {
       if (Lexer.isAlpha(c)) {
@@ -221,7 +221,7 @@ module.exports = class Lexer {
     let val = isFloat ? parseFloat(str) : parseInt(str);
     
     const token = {
-      name: 'NUMBER',
+      type: 'NUMBER',
       value: val,
       pos: this.pos
     };
@@ -243,14 +243,14 @@ module.exports = class Lexer {
     let token;
     if (typeof(keyword) !== 'undefined') {
       token = {
-        name: 'SYMBOL', 
+        type: 'SYMBOL', 
         value: keyword,
         pos: this.pos,
       };
     } 
     else {
       token = {
-        name: 'IDENTIFIER',
+        type: 'IDENTIFIER',
         value: val,
         pos: this.pos
       };
@@ -271,7 +271,7 @@ module.exports = class Lexer {
     }
     else {
       const token = {
-        name: 'STRING',
+        type: 'STRING',
         value: this.buf.substring(this.pos + 1, endpos),
         pos: this.pos
       }
