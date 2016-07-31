@@ -15,8 +15,9 @@ const p = 'test';
 const program = Loader.load('../test/' + p + '.program');
 
 let lexer = new Lexer(program);
-let parser = new Parser(lexer);
-console.log('\n');
+let tokens = lexer.tokenize();
+
+let parser = new Parser(tokens);
 let tree = parser.parse();
 let string;
 try {
@@ -28,6 +29,8 @@ try {
     ['name', 'message', 'from', 'to', 'key', 'value',
      'type', 'first', 'second', 'third', 'fourth'], 4);
 }
+
+console.log('\n');
 console.log(string);
 
 let evaluator = new Evaluator(parser);

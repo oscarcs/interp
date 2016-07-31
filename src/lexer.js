@@ -78,6 +78,25 @@ module.exports = class Lexer {
     this.buflen = input.length;
   }
   
+  tokenize() {
+    let tokens = [];
+    while (true) {
+      let token = this.getToken();
+      if (!token) break;
+      
+      if (token.name !== 'COMMENT') {
+        tokens.push(token);
+      }
+    }
+    
+    tokens.push({
+      type: 'SYMBOL',
+      value: 'END',
+    });
+    
+    return tokens;
+  }
+  
   
   getToken() {
     
@@ -108,7 +127,7 @@ module.exports = class Lexer {
     // check optable, then check for identifiers and literals.
     
     if (op !== undefined) {
-      return {name: 'OPERATOR', value: op, pos: this.pos++};
+      return {name: 'SYMBOL', value: op, pos: this.pos++};
     }
     else {
       if (Lexer.isAlpha(c)) {
@@ -224,8 +243,7 @@ module.exports = class Lexer {
     let token;
     if (typeof(keyword) !== 'undefined') {
       token = {
-        // @todo: rename this somehow (to 'KEYWORD' maybe)
-        name: 'OPERATOR', 
+        name: 'SYMBOL', 
         value: keyword,
         pos: this.pos,
       };

@@ -50,7 +50,7 @@ module.exports = class Definitions {
     parser.infix('QUESTION', 20, function(left) {
       this.first = left;
       this.second = parser.expression(0);
-      parser.advanceToken('COLON');
+      parser.advance('COLON');
       this.third = parser.expression(0);
       this.type = 'TERNARY';
       return this;
@@ -106,10 +106,10 @@ module.exports = class Definitions {
           if (parser.token.id !== 'COMMA') {
             break;
           }
-          parser.advanceToken('COMMA');
+          parser.advance('COMMA');
         }
       }
-      parser.advanceToken('R_PAREN');
+      parser.advance('R_PAREN');
       
       this.value = 'CALL';
       return this;
@@ -126,7 +126,7 @@ module.exports = class Definitions {
     // to match a balancing ) token.
     parser.prefix('L_PAREN', function() {
       let e = parser.expression(0);
-      parser.advanceToken('R_PAREN');
+      parser.advance('R_PAREN');
       return e;
     });
   }
@@ -149,7 +149,7 @@ module.exports = class Definitions {
     parser.statement_symbol('L_BRACE', function() {
       parser.newScope();
       let a = parser.statements();
-      parser.advanceToken('R_BRACE');
+      parser.advance('R_BRACE');
       parser.scope.pop();
       return a;
     });
@@ -168,11 +168,11 @@ module.exports = class Definitions {
         }
         
         parser.scope.define(ident);
-        parser.advanceToken();
+        parser.advance();
         
         if (parser.token.id === 'EQUALS') {
           t = parser.token;
-          parser.advanceToken('EQUALS');
+          parser.advance('EQUALS');
           t.first = ident;
           t.second = parser.expression(0);
           t.type = 'BINARY';
@@ -185,31 +185,31 @@ module.exports = class Definitions {
         if (parser.token.id !== 'COMMA') {
           break;
         }
-        parser.advanceToken('COMMA');
+        parser.advance('COMMA');
       }
-      parser.advanceToken('SEMI');
+      parser.advance('SEMI');
       
       return a.length === 0 ? null : (a.length === 1 ? a[0] : a);
     });
     
     parser.statement_symbol('WHILE', function() {
-      parser.advanceToken('L_PAREN');
+      parser.advance('L_PAREN');
       this.first = parser.expression(0);
-      parser.advanceToken('R_PAREN');
+      parser.advance('R_PAREN');
       this.second = parser.block();
       this.type = 'STATEMENT';
       return this;
     });
     
     parser.statement_symbol('IF', function() {
-      parser.advanceToken('L_PAREN');
+      parser.advance('L_PAREN');
       this.first = parser.expression(0);
-      parser.advanceToken('R_PAREN');
+      parser.advance('R_PAREN');
       this.second = parser.block();
       
       if (parser.token.id === 'ELSE') {
         parser.scope.reserve(parser.token);
-        parser.advanceToken('ELSE');
+        parser.advance('ELSE');
         this.third = parser.token.id === 'IF' ? parser.statement() : parser.block();
       }
       else {
@@ -220,7 +220,7 @@ module.exports = class Definitions {
     });
     
     parser.statement_symbol('BREAK', function() {
-      parser.advanceToken('SEMI');
+      parser.advance('SEMI');
       if (parser.token.id !== 'R_BRACE') {
         // @todo: better error message.
         throw Error('Unreachable statement.');
@@ -232,7 +232,7 @@ module.exports = class Definitions {
       if (parser.token.id !== 'SEMI') {
         this.first = parser.expression(0);
       }
-      parser.advanceToken('SEMI');
+      parser.advance('SEMI');
       if (parser.token.id !== 'R_BRACE') {
         // @todo: better error message.
         throw Error('Unreachable statement.');
@@ -250,14 +250,14 @@ module.exports = class Definitions {
         parser.scope.define(parser.token);
         this.name = parser.token.value;
       }
-      parser.advanceToken('IDENTIFIER');
+      parser.advance('IDENTIFIER');
       
       // create a new scope for arguments etc.
       parser.newScope();
       
       // parse the arguments
       let a = [];
-      parser.advanceToken('L_PAREN');
+      parser.advance('L_PAREN');
       if (parser.token.id !== 'R_PAREN') {
         while (true) {
           if (parser.token.type !== 'IDENTIFIER') {
@@ -266,16 +266,16 @@ module.exports = class Definitions {
           parser.scope.define(parser.token);
           
           a.push(parser.token);
-          parser.advanceToken();
+          parser.advance();
           if (parser.token.id !== 'COMMA') {
             break;
           }
-          parser.advanceToken('COMMA');
+          parser.advance('COMMA');
         }
       }
       
       this.first = a;
-      parser.advanceToken('R_PAREN');
+      parser.advance('R_PAREN');
       this.second = parser.block();
       
       parser.scope.pop(); // leave the function scope.
@@ -298,8 +298,8 @@ module.exports = class Definitions {
       else {
         throw Error('The name of an extern should be an identifier.')
       }
-      parser.advanceToken('IDENTIFIER');
-      parser.advanceToken('SEMI');
+      parser.advance('IDENTIFIER');
+      parser.advance('SEMI');
       
       this.type = 'EXTERN';
       return this;

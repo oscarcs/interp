@@ -7,13 +7,12 @@ let Definitions = require('./definitions');
 
 module.exports = class Parser {
   
-  constructor(lexer) {
-    this.lexer = lexer;
+  constructor(tokens) {
+    this.tokens = tokens;
+    this.cur = 0;
+    this.token;
     
-    // init the symbol table. create the base symbol that
-    // has nud ('null denotation') and led ('left denotation')
-    // functions with empty bodies.
-    
+    // init the symbol table.
     this.symbols = {};
     this.baseSymbol = {
       // @todo: better error messages.
@@ -21,54 +20,20 @@ module.exports = class Parser {
       led: (left) => { throw Error('Missing operator.') }, 
     };
     
-    // init the scope object. create the base scope from which
-    // all other scopes with inherit.
-    // @todo: do we keep the scope as part of the parser?
-    // @todo: make initialization of this less error-prone.
-    
-    this.scope; // make sure this isn't initialized!
-    
-    let that = this; // scope silliness.
-    // current position
-    this.cur = 0;
-    this.tokens = [];
-    this.token;
-    while (true) {
-      let token = lexer.getToken();
-      if (!token) break;
-      
-      // @todo: stop comments from emitting a token so this code can be moved 
-      //        into the lexer.
-      // ignore comments, don't add them to the token stream.
-      // an AST that preserves comments and formatting is called a
-      // 'full syntax tree'. We don't need to do this because we 
-      // aren't writing a source-to-source compiler or a beautifier or anything.
-      
-      if (token.name !== 'COMMENT') {
-        this.tokens.push({
-          type: token.name,
-          value: token.value
-        });
-      }
-    }
-    // add an end token
-    // @todo move this into the lexer?
-    this.tokens.push({
-      type: 'OPERATOR',
-      value: 'END',
-    });
+    this.scope;
+    this.newScope();
     
     console.log(this.tokens);
     
-    // add the tokens we wil need
+    // add the symbols we will need
     Definitions.addDefinitions(this);
   }
   
   parse() {
     this.newScope();
-    this.advanceToken();
+    this.advance();
     let s = this.statements();
-    this.advanceToken('END');
+    this.advance('END');
     this.scope.pop(); 
     return s;
   } 
@@ -76,17 +41,12 @@ module.exports = class Parser {
   // makes a new token object from the next simple token 
   // in the array and assigns it to the this.token variable.
 
-  advanceToken(id) {
+  advance(expected) {
     
-//    console.log('TOKEN:')
-//    if (this.token) { console.log(this.token.type); console.log(this.token.value); }
-//    console.log('\n');
-    //console.log(this.scope);
-    //console.log('\n');
+    console.log(this.token);
     
-    // optional id to check against the id of the previous token.
-    if (id && this.token.id !== id) {
-      throw Error('Expected "' + id + '".');
+    if (expected && this.token.value !== expected) {
+      throw Error('Expected token with value "' + expected + '".');
     }
     
     if (this.cur >= this.tokens.length) {
@@ -96,38 +56,43 @@ module.exports = class Parser {
     
     // get the next token and increment.
     let tk = this.tokens[this.cur];
+    console.log(tk);
     this.cur++;
     
     let value = tk.value;
-    let type = tk.type;
+    let type = tk.name;
     let obj = null;
     
-    if (type === 'IDENTIFIER') {
-      let cur = this.scope.find(value);
-      if (cur) {
-        obj = cur;
-      }
-      else {
-        obj = this.symbols['IDENTIFIER'];
-      }
-      //obj = this.scope.find(value);
-    }
-    else if (type === 'OPERATOR') {
-      obj = this.symbols[value];
-      if (!obj) {
-        throw Error('Unknown operator type: "' + value + '".');
-      }
-    }
-    else if (type === 'STRING' || type === 'NUMBER') {
-      type = 'LITERAL';
-      obj = this.symbols['LITERAL'];
-    }
-    else {
-      throw Error('Unexpected token: "' + type + '".');
+    switch (type) {
+      case 'IDENTIFIER':
+        let cur = this.scope.find(value);
+        if (cur) {
+          obj = cur;
+        }
+        else { 
+          obj = this.symbols['IDENTIFIER'];
+        }
+        break;
+      
+      case 'SYMBOL':
+        obj = this.symbols[value];
+        if (!obj) {
+          throw Error('Unknown operator type: "' + value + '".');
+        }
+        break;
+      
+      case 'STRING':
+      case 'NUMBER':
+        type = 'LITERAL';
+        obj = this.symbols['LITERAL'];
+        break;
+        
+      default:
+        throw Error('Unexpected token: "' + type + '".');
+        break;
     }
     
     this.token = Object.create(obj);
-    
     this.token.value = value;
     this.token.type = type;
     
@@ -178,7 +143,7 @@ module.exports = class Parser {
     let left;
     let t = this.token;
     
-    this.advanceToken();
+    this.advance();
     
     // the nud is used to process literals, variables, 
     // and prefix operators.
@@ -191,7 +156,7 @@ module.exports = class Parser {
     
     while (rbp < this.token.lbp) {
       t = this.token;
-      this.advanceToken();
+      this.advance();
       
       // the led is used to process infix and 
       // suffix operators.
@@ -221,6 +186,7 @@ module.exports = class Parser {
   
   // a function for making symbols for right-associative
   // operators. (assignment, OR, AND, etc).
+  
   infix_right(id, bp, led) {
     let s = this.symbol(id, bp);
     
@@ -312,26 +278,14 @@ module.exports = class Parser {
     // reserved and the std is invoked.
     
     if (identifier.std) {
-      this.advanceToken();
+      this.advance();
       this.scope.reserve(identifier);
       
       return identifier.std();
     }
     v = this.expression(0);
     
-    // reject an expression statement that isn't an
-    // assignment or invocation.
-    
-    //if (!v.assignment && v.id !== 'L_PAREN') {
-      // @todo: better error message. 
-    //  throw Error('Bad expression statement.');
-    //}
-    
-    //console.log(this.token);
-    
-    // @todo: remove assumption that statements are
-    //        semicolon-terminated?
-    this.advanceToken('SEMI');
+    this.advance('SEMI');
     return v;
   }
   
@@ -367,7 +321,7 @@ module.exports = class Parser {
   
   block() {
     let t = this.token;
-    this.advanceToken('L_BRACE');
+    this.advance('L_BRACE');
     return t.std();
   }
   
