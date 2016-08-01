@@ -126,7 +126,7 @@ module.exports = class Evaluator {
     }
     else if (node.type === 'UNARY') {
       if (this.operators[node.value]) {
-        return this.operators[node.value](this.parseNode(node.first));
+        return this.operators[node.value](this.parseNode(node.children[0]));
       }
     }
     else if (node.type === 'BINARY') {
@@ -134,10 +134,10 @@ module.exports = class Evaluator {
       if (node.value === 'EQUALS'
        || node.value === 'INCREMENT_ASSIGN'
        || node.value === 'DECREMENT_ASSIGN') {
-        let scope = node.first.scope;
-        let ident = node.first.value;
-        let value = this.parseNode(node.second);
-        let cur = this.parseNode(node.first);
+        let scope = node.children[0].scope;
+        let ident = node.children[0].value;
+        let value = this.parseNode(node.children[1]);
+        let cur = this.parseNode(node.children[0]);
         
         //console.log(' ' + value);
         
@@ -173,13 +173,13 @@ module.exports = class Evaluator {
       // call a function.
       
       else if (node.value === 'CALL') {
-        let ident = node.first.value;
+        let ident = node.children[0].value;
         
         let f = this.globals[ident] || this.scope.find(ident);
         if (!f) throw Error('Function definition not found');
         
-        let argValues = node.second;
-        let scope = node.first.scope;
+        let argValues = node.children[1];
+        let scope = node.children[0].scope;
         
         let args = []
         for (let i in argValues) {
@@ -233,19 +233,19 @@ module.exports = class Evaluator {
       else if (this.operators[node.value]) {
         
         // handle mathematical operators.
-        return this.operators[node.value](this.parseNode(node.first), this.parseNode(node.second));
+        return this.operators[node.value](this.parseNode(node.children[0]), this.parseNode(node.children[1]));
       }
     }
     else if (node.type === 'FUNCTION') {
-      let scope = node.first.scope;
+      let scope = node.children[0].scope;
       
       let curArgs = [];
       // @todo: rename parser output obj to 'args'?
-      for (let i in node.first) { 
-        curArgs.push(node.first[i].value);
+      for (let i in node.children[0]) { 
+        curArgs.push(node.children[0][i].value);
       }
       
-      let body = node.second;
+      let body = node.children[1];
           
       let id = {
         name: node.name,
@@ -266,7 +266,7 @@ module.exports = class Evaluator {
       if (node.value === 'RETURN') {
         let returnVal = {
           stop: true,
-          value: this.parseNode(node.first),
+          value: this.parseNode(node.children[0]),
         };
         return returnVal;
       }
@@ -280,15 +280,15 @@ module.exports = class Evaluator {
       // implementation of the if statement.
       
       else if (node.value === 'IF') {
-        let cond = this.parseNode(node.first);
+        let cond = this.parseNode(node.children[0]);
         
         // choose the right code branch to execute.
         let branch;
         if (cond) {
-          if (node.second) branch = node.second;
+          if (node.children[1]) branch = node.children[1];
         }
         else {
-          if (node.third) branch = node.third;
+          if (node.children[2]) branch = node.children[2];
         }
         
         // parse and execute the code branch itself.

@@ -23,11 +23,11 @@ let string;
 try {
   string = JSON.stringify(tree, 
     ['key', 'name', 'message', 'value', 'type',
-     'first', 'second', 'third', 'fourth'], 4);
+     'children'], 4);
 } catch (e) {
   string = JSON.stringify(e, 
     ['name', 'message', 'from', 'to', 'key', 'value',
-     'type', 'first', 'second', 'third', 'fourth'], 4);
+     'type', 'children'], 4);
 }
 
 console.log('\n');

@@ -48,22 +48,22 @@ module.exports = class Definitions {
     
     // ternary dot operator. ( expr ? statement : statement; )
     parser.infix('QUESTION', 20, function(left) {
-      this.first = left;
-      this.second = parser.expression(0);
+      this.children[0] = left;
+      this.children[1] = parser.expression(0);
       parser.advance('COLON');
-      this.third = parser.expression(0);
+      this.children[2] = parser.expression(0);
       this.type = 'TERNARY';
       return this;
     });
     
     // the dot operator selects a member of an object.
     parser.infix('PERIOD', 80, function(left) {
-      this.first = left;
+      this.children[0] = left;
       if (parser.token.type !== 'IDENTIFIER') {
         throw Error('Expected a property name');
       }
       parser.token.type = 'LITERAL';
-      this.second = parser.token;
+      this.children[1] = parser.token;
       this.type = 'BINARY';
       return this;
     });
@@ -81,14 +81,14 @@ module.exports = class Definitions {
       let a = [];
       if (left.id === 'PERIOD' || left.id === 'L_BRACKET') {
         this.type = 'TERNARY';
-        this.first = left.first;
-        this.second = left.second;
-        this.third = a;
+        this.children[0] = left.children[0];
+        this.children[1] = left.children[1];
+        this.children[2] = a;
       }
       else {
         this.type = 'BINARY';
-        this.first = left;
-        this.second = a;
+        this.children[0] = left;
+        this.children[1] = a;
         if ((left.type !== 'UNARY' || left.id !== 'FUNCTION') &&
           left.type !== 'IDENTIFIER' && left.id !== 'L_PAREN' &&
           left.id !== 'AND' && left.id !== 'OR' && left.id !== 'QUESTION') {
@@ -173,8 +173,8 @@ module.exports = class Definitions {
         if (parser.token.id === 'EQUALS') {
           t = parser.token;
           parser.advance('EQUALS');
-          t.first = ident;
-          t.second = parser.expression(0);
+          t.children[0] = ident;
+          t.children[1] = parser.expression(0);
           t.type = 'BINARY';
           a.push(t);
         }
@@ -194,26 +194,26 @@ module.exports = class Definitions {
     
     parser.statement_symbol('WHILE', function() {
       parser.advance('L_PAREN');
-      this.first = parser.expression(0);
+      this.children[0] = parser.expression(0);
       parser.advance('R_PAREN');
-      this.second = parser.block();
+      this.children[1] = parser.block();
       this.type = 'STATEMENT';
       return this;
     });
     
     parser.statement_symbol('IF', function() {
       parser.advance('L_PAREN');
-      this.first = parser.expression(0);
+      this.children[0] = parser.expression(0);
       parser.advance('R_PAREN');
-      this.second = parser.block();
+      this.children[1] = parser.block();
       
       if (parser.token.id === 'ELSE') {
         parser.scope.reserve(parser.token);
         parser.advance('ELSE');
-        this.third = parser.token.id === 'IF' ? parser.statement() : parser.block();
+        this.children[2] = parser.token.id === 'IF' ? parser.statement() : parser.block();
       }
       else {
-        this.third = null;
+        this.children[2] = null;
       }
       this.type = 'STATEMENT';
       return this;
@@ -230,7 +230,7 @@ module.exports = class Definitions {
     
     parser.statement_symbol('RETURN', function() {
       if (parser.token.id !== 'SEMI') {
-        this.first = parser.expression(0);
+        this.children[0] = parser.expression(0);
       }
       parser.advance('SEMI');
       if (parser.token.id !== 'R_BRACE') {
@@ -274,9 +274,9 @@ module.exports = class Definitions {
         }
       }
       
-      this.first = a;
+      this.children[0] = a;
       parser.advance('R_PAREN');
-      this.second = parser.block();
+      this.children[1] = parser.block();
       
       parser.scope.pop(); // leave the function scope.
       this.type = 'FUNCTION';

@@ -3,6 +3,7 @@
 'use strict';
 
 let Scope = require('./scope');
+let ASTNode = require('./ast_node');
 let Definitions = require('./definitions');
 
 module.exports = class Parser {
@@ -14,11 +15,13 @@ module.exports = class Parser {
     
     // init the symbol table.
     this.symbols = {};
+    /*
     this.baseSymbol = {
       // @todo: better error messages.
       nud: () => { throw Error('Undefined.') },
       led: (left) => { throw Error('Missing operator.') }, 
     };
+    */
     
     this.scope;
     this.newScope();
@@ -30,7 +33,6 @@ module.exports = class Parser {
   }
   
   parse() {
-    this.newScope();
     this.advance();
     let s = this.statements();
     this.advance('END');
@@ -42,9 +44,6 @@ module.exports = class Parser {
   // in the array and assigns it to the this.token variable.
 
   advance(expected) {
-    
-    console.log(this.token);
-    
     if (expected && this.token.id !== expected) {
       throw Error('Expected token with value "' + expected + '".');
     }
@@ -56,7 +55,6 @@ module.exports = class Parser {
     
     // get the next token and increment.
     let tk = this.tokens[this.cur];
-    console.log(tk);
     this.cur++;
     
     let value = tk.value;
@@ -107,6 +105,12 @@ module.exports = class Parser {
     this.scope = new Scope(this);
     this.scope.def = {}; // clear definitions.
     this.scope.parent = s;
+    
+    if (this.token) {
+      this.token.newscope = true;
+      console.log(this.token);
+    }
+      
     return this.scope;
   }
   
@@ -126,9 +130,8 @@ module.exports = class Parser {
       }
     }
     else {
-      symbol = Object.create(this.baseSymbol);
-      symbol.id = symbol.value = id;
-      symbol.lbp = bp;
+      symbol = new ASTNode();
+      symbol.make_parseable(id, bp);
       this.symbols[id] = symbol;
     }
     return symbol;
@@ -174,8 +177,10 @@ module.exports = class Parser {
     // if no led is provided, use a sane default.
     let that = this;
     let f = function(left) {
-      this.first = left;
-      this.second = that.expression(bp);
+      
+      this.children[0] = left;
+      this.children[1] = that.expression(bp);
+      
       this.type = 'BINARY'; 
       return this;
     };
@@ -192,8 +197,8 @@ module.exports = class Parser {
     
     let that = this;
     let f = function(left) {
-      this.first = left;
-      this.second = that.expression(bp - 1);
+      this.children[0] = left;
+      this.children[1] = that.expression(bp - 1);
       this.type = 'BINARY';
       return this;
     }
@@ -212,7 +217,7 @@ module.exports = class Parser {
     let that = this;
     let f = function() {
       that.scope.reserve(this);
-      this.first = that.expression(70);
+      this.children[0] = that.expression(70);
       this.type = 'UNARY';
       return this;
     };
@@ -240,8 +245,8 @@ module.exports = class Parser {
         throw Error('Undefined identifier "' + left.value + '" cannot be assigned to.')
       }
       
-      this.first = left;
-      this.second = that.expression(9);
+      this.children[0] = left;
+      this.children[1] = that.expression(9);
       
       // add an assignment member so we can quickly check
       // for assignment statements.
