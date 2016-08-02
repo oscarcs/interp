@@ -9,6 +9,7 @@ module.exports = class Definitions {
   }
   
   static addDefinitions(parser) {
+    
     this.addSymbols(parser);
     this.addInfixes(parser);
     this.addPrefixes(parser);
@@ -18,6 +19,7 @@ module.exports = class Definitions {
   }
   
   static addSymbols(parser) {
+    
     parser.symbol('COLON');
     parser.symbol('SEMI');
     parser.symbol('COMMA');
@@ -34,6 +36,7 @@ module.exports = class Definitions {
   }
   
   static addInfixes(parser) {
+    
     parser.infix('PLUS', 50);
     parser.infix('MINUS', 50);
     parser.infix('MULTIPLY', 60);
@@ -117,6 +120,7 @@ module.exports = class Definitions {
   }
   
   static addPrefixes(parser) {
+    
     //this.prefix('INCREMENT');
     //this.prefix('DECREMENT');
     parser.prefix('MINUS');
@@ -132,13 +136,15 @@ module.exports = class Definitions {
   }
   
   static addAssignments(parser) {
+    
     parser.assignment('EQUALS');
     parser.assignment('INCREMENT_ASSIGN');
     parser.assignment('DECREMENT_ASSIGN');
   }
   
   static addConstants(parser) {
-    // @todo: move true and false into lexer.
+    
+    // @todo: move true and false into lexer?
     parser.constant('true', true);
     parser.constant('false', false);
     parser.constant('null', null);
@@ -146,12 +152,18 @@ module.exports = class Definitions {
   }
   
   static addStatements(parser) {
+    
     parser.statement_symbol('L_BRACE', function() {
       parser.newScope();
       let a = parser.statements();
       parser.advance('R_BRACE');
       parser.scope.pop();
-      return a;
+      
+      this.value = 'BLOCK';
+      this.type = 'SCOPE';
+      this.children = a;
+      
+      return this;
     });
     
     // @todo: fix and test this mess
@@ -213,7 +225,7 @@ module.exports = class Definitions {
         this.children[2] = parser.token.id === 'IF' ? parser.statement() : parser.block();
       }
       else {
-        this.children[2] = null;
+        //this.children[2] = null;
       }
       this.type = 'STATEMENT';
       return this;
@@ -279,6 +291,7 @@ module.exports = class Definitions {
       this.children[1] = parser.block();
       
       parser.scope.pop(); // leave the function scope.
+      this.value = 'FUNCTION';
       this.type = 'FUNCTION';
       return this;
     });

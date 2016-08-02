@@ -37,7 +37,11 @@ module.exports = class Parser {
     let s = this.statements();
     this.advance('END');
     this.scope.pop(); 
-    return s;
+    let root = new ASTNode();
+    root.type = 'SCOPE';
+    root.value = 'PROGRAM';
+    root.children = s;
+    return root;
   } 
   
   // makes a new token object from the next simple token 
@@ -105,11 +109,6 @@ module.exports = class Parser {
     this.scope = new Scope(this);
     this.scope.def = {}; // clear definitions.
     this.scope.parent = s;
-    
-    if (this.token) {
-      this.token.newscope = true;
-      console.log(this.token);
-    }
       
     return this.scope;
   }
@@ -285,7 +284,7 @@ module.exports = class Parser {
     if (identifier.std) {
       this.advance();
       this.scope.reserve(identifier);
-      
+
       return identifier.std();
     }
     v = this.expression(0);
@@ -311,7 +310,8 @@ module.exports = class Parser {
         a.push(stat);
       }
     }
-    return a.length === 0 ? null : (a.length === 1 ? a[0] : a);
+    return a;
+   // return a.length === 0 ? null : (a.length === 1 ? a[0] : a);
   }
   
   // adds a new statement symbol to the symbol table.

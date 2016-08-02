@@ -10,15 +10,19 @@ module.exports = class ASTNode {
       'SYMBOL',
       'IDENTIFIER',
       'NUMBER',
+      'STRING',
     ];
   }
   static get nodeTypes() {
     return [
-      'BINARY',
-      'UNARY',
       'EXTERN',
+      'SCOPE',
+      'UNARY',
+      'BINARY',
       'LITERAL',
       'IDENTIFIER',
+      'FUNCTION',
+      'STATEMENT',
     ];
   }
   
@@ -42,29 +46,7 @@ module.exports = class ASTNode {
     this._type = type;
   }
   
-  get first() {
-    throw Error('Don\'t use the old style of children');    
-  }
-  
-  set first(x) {
-    throw Error('Don\'t use the old style of children');
-  }
-
-  get second() {
-    throw Error('Don\'t use the old style of children');    
-  }
-  
-  set second(x) {
-    throw Error('Don\'t use the old style of children');
-  }
-  
-  get thirdd() {
-    throw Error('Don\'t use the old style of children');    
-  }
-  
-  set third(x) {
-    throw Error('Don\'t use the old style of children');
-  }
+  // initialize the node for parsing.
   
   make_parseable(id, bp) {
     // @todo: better error messages.
@@ -75,7 +57,15 @@ module.exports = class ASTNode {
     this.lbp = bp;
   }
   
+  // remove the members we added to be able to 
+  // parse this node.
+  
   clean_parseable() {
+    
+    if (ASTNode.nodeTypes.indexOf(this.type) === -1) {
+      throw Error('Cannot clean token that has not been converted to an AST node.');
+    }
+    
     delete this.nud;
     delete this.led;
     
