@@ -61,27 +61,7 @@ module.exports = class Evaluator {
   }
   
   evaluate(ast) {
-    let output = '';
-    for (let i in ast) {
-      let value = ast[i];
-      if (value instanceof Array) {
-        this.newScope();
-        
-        for (let j in value) {
-          this.parseNode(value[j]);
-        }
-        this.scope.pop();
-      }
-      else {
-        this.parseNode(value);
-      }
-      //if (typeof value !== 'undefined') output += value + '\n';
-    }
-    
-    //console.log(this.globals);
-    //console.log(this.scope.def);
-    
-    return output;
+    this.parseNode(ast);
   }
   
   // we recursively perform operations on AST nodes
@@ -98,6 +78,8 @@ module.exports = class Evaluator {
     if (node.type === 'LITERAL') {
       return node.value;
     }
+    
+    
     else if (node.type === 'IDENTIFIER') {
       // check the current args first.
       let v = this.args[node.value] 
@@ -124,118 +106,32 @@ module.exports = class Evaluator {
         throw Error('The extern "' + node.value + '" has not been defined.');
       }
     }
+    
+    
+    else if (node.type === 'SCOPE') {
+      this.newScope();
+      
+      if (node.children) {
+        for (let i in node.children) {
+          this.parseNode(node.children[i]);
+        }
+      }
+      this.scope.pop();
+    }
+    
+    
     else if (node.type === 'UNARY') {
       if (this.operators[node.value]) {
         return this.operators[node.value](this.parseNode(node.children[0]));
       }
     }
+    
+    
     else if (node.type === 'BINARY') {
-      // check for different types of assignment.
-      if (node.value === 'EQUALS'
-       || node.value === 'INCREMENT_ASSIGN'
-       || node.value === 'DECREMENT_ASSIGN') {
-        let scope = node.children[0].scope;
-        let ident = node.children[0].value;
-        let value = this.parseNode(node.children[1]);
-        let cur = this.parseNode(node.children[0]);
-        
-        //console.log(' ' + value);
-        
-        // check the scope variable and store the
-        // value in the variable table if it is acceptable.
-        
-        let v = scope.def[ident];
-        
-        if (v) {
-          if (!v.reserved) {
-            if (cur) {
-              if (node.value === 'INCREMENT_ASSIGN') value = cur + value;
-              if (node.value === 'DECREMENT_ASSIGN') value = cur - value;
-            }
-            let id = {
-              name: ident,
-              reserved: false,
-              value: value,
-            }
-            this.scope.define(id);
-          }
-          else {
-            throw Error('Identifier "' + ident + '" is reserved.');
-          }
-        }
-        else {
-          throw Error('Identifier "' + ident + '" is not defined in scope.');
-        }
-        
-        return value;
-      }
-      
-      // call a function.
-      
-      else if (node.value === 'CALL') {
-        let ident = node.children[0].value;
-        
-        let f = this.globals[ident] || this.scope.find(ident);
-        if (!f) throw Error('Function definition not found');
-        
-        let argValues = node.children[1];
-        let scope = node.children[0].scope;
-        
-        let args = []
-        for (let i in argValues) {
-          let val = this.parseNode(argValues[i]);
-          //console.log(val);
-          args.push(val);
-        }
-        let id = {
-          name: 'args',
-          value: args,
-          reserved: false,
-        };
-        this.scope.define(id);
-
-        // check if we're calling a JS function, 
-        // otherwise interpret the function 'normally'.
-        
-        if (typeof(f) === 'function') {
-          f.apply(null, this.scope.find('args').value);
-        }
-        else if (f.value) {
-          
-          if (!(f.value instanceof Array)) {
-            f.value = [f.value];
-          }
-          //console.log(f.value);
-          
-          let i = 0;
-          let returnVal = null;
-          
-          // continue executing statements until we reach
-          // a breaking statement. Also process the returned
-          // value of this function call.
-          
-          while (i < f.value.length) {
-            //console.log(f.value[i]);
-            let cur = this.parseNode(f.value[i]);
-            if (cur.value) {
-              returnVal = cur.value;
-            }
-            if (cur.stop) {
-              break;
-            }
-            i++;
-          }
-          return returnVal;
-        }
-        
-        this.args = [];
-      }
-      else if (this.operators[node.value]) {
-        
-        // handle mathematical operators.
-        return this.operators[node.value](this.parseNode(node.children[0]), this.parseNode(node.children[1]));
-      }
+      return this.parseBinary(node);
     }
+    
+    
     else if (node.type === 'FUNCTION') {
       let scope = node.children[0].scope;
       
@@ -257,51 +153,13 @@ module.exports = class Evaluator {
       this.scope.define(id);
       //console.log(this.variables);
     }
+    
+    
     else if (node.type === 'STATEMENT') {
-      
-      // deal with function or loop-breaking statements.
-      // the return value ('returnVal') of these nodes is 
-      // used to break the loop or function
-      
-      if (node.value === 'RETURN') {
-        let returnVal = {
-          stop: true,
-          value: this.parseNode(node.children[0]),
-        };
-        return returnVal;
-      }
-      else if (node.value === 'BREAK') {
-        let returnVal = {
-          stop: true,
-          value: null,
-        };
-      }
-      
-      // implementation of the if statement.
-      
-      else if (node.value === 'IF') {
-        let cond = this.parseNode(node.children[0]);
-        
-        // choose the right code branch to execute.
-        let branch;
-        if (cond) {
-          if (node.children[1]) branch = node.children[1];
-        }
-        else {
-          if (node.children[2]) branch = node.children[2];
-        }
-        
-        // parse and execute the code branch itself.
-        if (branch instanceof Array) {
-          for (let i in branch) {
-            if (branch[i]) this.parseNode(branch[i]);
-          }
-        }
-        else {
-          if (branch) this.parseNode(branch);
-        }
-      }
+      return this.parseStatement(node);
     }
+    
+    
     else {
       throw Error('Unsupported node type: ' + node.type);
     }
@@ -315,5 +173,162 @@ module.exports = class Evaluator {
   
   addExtern(name, func) {
     this.globals[name] = func;
+  }
+  
+  parseBinary(node) {
+    // check for different types of assignment.
+    if (node.value === 'EQUALS'
+     || node.value === 'INCREMENT_ASSIGN'
+     || node.value === 'DECREMENT_ASSIGN') {
+      let scope = node.children[0].scope;
+      let ident = node.children[0].value;
+      let value = this.parseNode(node.children[1]);
+      let cur = this.parseNode(node.children[0]);
+      
+      //console.log(' ' + value);
+      
+      // check the scope variable and store the
+      // value in the variable table if it is acceptable.
+      
+      let v = scope.def[ident];
+      
+      if (v) {
+        if (!v.reserved) {
+          if (cur) {
+            if (node.value === 'INCREMENT_ASSIGN') value = cur + value;
+            if (node.value === 'DECREMENT_ASSIGN') value = cur - value;
+          }
+          let id = {
+            name: ident,
+            reserved: false,
+            value: value,
+          }
+          this.scope.define(id);
+        }
+        else {
+          throw Error('Identifier "' + ident + '" is reserved.');
+        }
+      }
+      else {
+        throw Error('Identifier "' + ident + '" is not defined in scope.');
+      }
+      
+      return value;
+    }
+    
+    // call a function.
+    
+    else if (node.value === 'CALL') {
+      
+      let ident = node.children[0].value;
+      
+      let f = this.globals[ident] || this.scope.find(ident);
+      if (!f) throw Error('Function definition not found');
+      
+      let argValues = node.children[1];
+      let scope = node.children[0].scope;
+      
+      let args = []
+      for (let i in argValues) {
+        let val = this.parseNode(argValues[i]);
+        //console.log(val);
+        args.push(val);
+      }
+      let id = {
+        name: 'args',
+        value: args,
+        reserved: false,
+      };
+      this.scope.define(id);
+
+      // check if we're calling a JS function, 
+      // otherwise interpret the function 'normally'.
+      
+      if (typeof(f) === 'function') {
+        f.apply(null, this.scope.find('args').value);
+      }
+      else if (f.value) {
+        
+        if (!(f.value instanceof Array)) {
+          f.value = [f.value];
+        }
+        //console.log(f.value);
+        
+        let i = 0;
+        let returnVal = null;
+        
+        // continue executing statements until we reach
+        // a breaking statement. Also process the returned
+        // value of this function call.
+        
+        while (i < f.value.length) {
+          //console.log(f.value[i]);
+          let cur = this.parseNode(f.value[i]);
+          if (cur.value) {
+            returnVal = cur.value;
+          }
+          if (cur.stop) {
+            break;
+          }
+          i++;
+        }
+        return returnVal;
+      }
+      
+      this.args = [];
+    }
+    else if (this.operators[node.value]) {
+      
+      // handle mathematical operators.
+      return this.operators[node.value](this.parseNode(node.children[0]), this.parseNode(node.children[1]));
+    }
+    else {
+      throw Error('Unsupported binary operation: ' + node.type);
+    }
+  }
+  
+  parseStatement(node) {    
+    // deal with function or loop-breaking statements.
+    // the return value ('returnVal') of these nodes is 
+    // used to break the loop or function
+    
+    if (node.value === 'RETURN') {
+      let returnVal = {
+        stop: true,
+        value: this.parseNode(node.children[0]),
+      };
+      return returnVal;
+    }
+    else if (node.value === 'BREAK') {
+      let returnVal = {
+        stop: true,
+        value: null,
+      };
+    }
+    
+    // implementation of the if statement.
+    
+    else if (node.value === 'IF') {
+      let cond = this.parseNode(node.children[0]);
+      
+      // choose the right code branch to execute.
+      let branch;
+      if (cond) {
+        if (node.children[1]) branch = node.children[1];
+      }
+      else {
+        if (node.children[2]) branch = node.children[2];
+      }
+      
+      // parse and execute the code branch itself.
+      if (branch instanceof Array) {
+        for (let i in branch) {
+          if (branch[i]) this.parseNode(branch[i]);
+        }
+      }
+      else {
+        if (branch) this.parseNode(branch);
+      }
+    }
   }
 }

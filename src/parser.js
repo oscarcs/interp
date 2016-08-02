@@ -15,13 +15,6 @@ module.exports = class Parser {
     
     // init the symbol table.
     this.symbols = {};
-    /*
-    this.baseSymbol = {
-      // @todo: better error messages.
-      nud: () => { throw Error('Undefined.') },
-      led: (left) => { throw Error('Missing operator.') }, 
-    };
-    */
     
     this.scope;
     this.newScope();
