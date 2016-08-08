@@ -82,7 +82,6 @@ module.exports = class Parser {
         
       default:
         throw Error('Unexpected token: "' + type + '".');
-        break;
     }
     
     this.token = Object.create(obj);

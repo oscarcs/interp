@@ -45,11 +45,6 @@ module.exports = class Evaluator {
     };
     
     this.scope = new Scope(this, false);
-    
-    // the args array is used during a CALL
-    // to contain the 
-    
-    this.args = [];
   }
   
   newScope() {
@@ -82,9 +77,8 @@ module.exports = class Evaluator {
     
     else if (node.type === 'IDENTIFIER') {
       // check the current args first.
-      let v = this.args[node.value] 
-          || this.scope.find(node.value) 
-          || this.globals[node.value]; 
+      let v = this.scope.find(node.value) 
+           || this.globals[node.value]; 
       
       if (v) {
         return typeof(v.value) !== 'undefined' ? v.value : v;
@@ -107,13 +101,30 @@ module.exports = class Evaluator {
       }
     }
     
-    
     else if (node.type === 'SCOPE') {
       this.newScope();
       
-      if (node.children) {
-        for (let i in node.children) {
-          this.parseNode(node.children[i]);
+      if (node.value === 'BLOCK') {
+        let returnVal = null;
+        if (node.children) {
+          let cur;
+          //console.log(node.children);
+          for (let i in node.children) {
+            cur = this.parseNode(node.children[i]);
+            if (cur && cur.stop) {
+              if (cur.value) {
+                returnVal = cur.value;
+              }
+            }
+          }
+        }
+        return returnVal;
+      }
+      else {
+        if (node.children) {
+          for (let i in node.children) {
+            this.parseNode(node.children[i]);
+          }
         }
       }
       this.scope.pop();
@@ -220,68 +231,45 @@ module.exports = class Evaluator {
     
     else if (node.value === 'CALL') {
       
-      let ident = node.children[0].value;
+      let name = node.children[0].value;
+      let ident = this.scope.find(name) || this.globals[name];
+      // let scope = node.scope;
+      // console.log(scope);
       
-      let f = this.globals[ident] || this.scope.find(ident);
-      if (!f) throw Error('Function definition not found');
-      
+      let argNames = ident.args;
       let argValues = node.children[1];
-      let scope = node.children[0].scope;
       
-      let args = []
       for (let i in argValues) {
-        let val = this.parseNode(argValues[i]);
-        //console.log(val);
-        args.push(val);
+        argValues[i] = this.parseNode(argValues[i]);
       }
-      let id = {
-        name: 'args',
-        value: args,
-        reserved: false,
-      };
-      this.scope.define(id);
 
-      // check if we're calling a JS function, 
-      // otherwise interpret the function 'normally'.
-      
-      if (typeof(f) === 'function') {
-        f.apply(null, this.scope.find('args').value);
+      if (typeof(ident) === 'function') {
+        return ident.apply(null, argValues);
       }
-      else if (f.value) {
-        
-        if (!(f.value instanceof Array)) {
-          f.value = [f.value];
+
+      // @todo: refactor this so we can call a single
+      //        'defineIdentifier' function.
+      for (let i in argNames) {
+        //console.log(argNames[i]);        
+        let id = {
+          name: argNames[i],
+          reserved: false,
+          value: argValues[i],
         }
-        //console.log(f.value);
-        
-        let i = 0;
-        let returnVal = null;
-        
-        // continue executing statements until we reach
-        // a breaking statement. Also process the returned
-        // value of this function call.
-        
-        while (i < f.value.length) {
-          //console.log(f.value[i]);
-          let cur = this.parseNode(f.value[i]);
-          if (cur.value) {
-            returnVal = cur.value;
-          }
-          if (cur.stop) {
-            break;
-          }
-          i++;
-        }
-        return returnVal;
+        this.scope.define(id);
       }
-      
-      this.args = [];
+
+      return this.parseNode(ident.value);
     }
+    
+    
     else if (this.operators[node.value]) {
       
       // handle mathematical operators.
       return this.operators[node.value](this.parseNode(node.children[0]), this.parseNode(node.children[1]));
     }
+    
+    
     else {
       throw Error('Unsupported binary operation: ' + node.type);
     }

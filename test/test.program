@@ -1,5 +1,10 @@
 extern print;
 extern test;
 
-test();
-print();
+function a (x) {
+    print(x);
+    return 1;
+}
+
+let y = a(10);
+print(y);

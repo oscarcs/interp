@@ -37,4 +37,4 @@ console.log(string);
 let evaluator = new Evaluator(parser);
 evaluator.addExtern('print', console.log); 
 evaluator.addExtern('test', console.log); 
-// evaluator.evaluate(tree);
+evaluator.evaluate(tree);
