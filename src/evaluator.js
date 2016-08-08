@@ -13,7 +13,6 @@ module.exports = class Evaluator {
   
   constructor(parser) {
     this.parser = parser;
-    //this.ast = this.parser.parse();
 
     this.operators = {
       'PLUS': (a, b) => a + b,
@@ -108,7 +107,6 @@ module.exports = class Evaluator {
         let returnVal = null;
         if (node.children) {
           let cur;
-          //console.log(node.children);
           for (let i in node.children) {
             cur = this.parseNode(node.children[i]);
             if (cur && cur.stop) {
@@ -162,7 +160,6 @@ module.exports = class Evaluator {
       };
       
       this.scope.define(id);
-      //console.log(this.variables);
     }
     
     
@@ -195,8 +192,6 @@ module.exports = class Evaluator {
       let ident = node.children[0].value;
       let value = this.parseNode(node.children[1]);
       let cur = this.parseNode(node.children[0]);
-      
-      //console.log(' ' + value);
       
       // check the scope variable and store the
       // value in the variable table if it is acceptable.
@@ -233,18 +228,18 @@ module.exports = class Evaluator {
       
       let name = node.children[0].value;
       let ident = this.scope.find(name) || this.globals[name];
-      // let scope = node.scope;
-      // console.log(scope);
       
       let argNames = ident.args;
       let argValues = node.children[1];
-      
+
+      // get the argument values.
+      let args = [];
       for (let i in argValues) {
-        argValues[i] = this.parseNode(argValues[i]);
+        args.push(this.parseNode(argValues[i]));
       }
 
       if (typeof(ident) === 'function') {
-        return ident.apply(null, argValues);
+        return ident.apply(null, args);
       }
 
       // @todo: refactor this so we can call a single
@@ -317,6 +312,17 @@ module.exports = class Evaluator {
       else {
         if (branch) this.parseNode(branch);
       }
+    }
+
+    else if (node.value === 'WHILE') {
+
+      let condition = node.children[0];
+      let body = node.children[1];
+
+      while (this.parseNode(condition)) {
+        this.parseNode(body);
+      }
+      return;
     }
   }
 }
