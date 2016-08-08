@@ -18,9 +18,7 @@ module.exports = class Parser {
     
     this.scope;
     this.newScope();
-    
-    console.log(this.tokens);
-    
+
     // add the symbols we will need
     Definitions.addDefinitions(this);
   }

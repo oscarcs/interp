@@ -27,13 +27,13 @@ module.exports = class ASTNode {
   }
   
   constructor() {
-    this.type = 'BINARY';
+    this.type = 'SYMBOL';
     this.children = [];
   } 
   
   get type() {
     if (!this._type) {
-      throw Error ('Node type not set.');
+      throw Error('Node type not set.');
     }
     return this._type;
   }
@@ -41,7 +41,7 @@ module.exports = class ASTNode {
   set type(type) {
     if (ASTNode.tokenTypes.indexOf(type) === -1 && 
         ASTNode.nodeTypes.indexOf(type) === -1) {
-      throw Error ('Type "' + type + '" is not a valid type.');
+      throw Error('Type "' + type + '" is not a valid type.');
     }
     this._type = type;
   }
@@ -73,4 +73,4 @@ module.exports = class ASTNode {
       delete this.children;
     }
   }
-}
+} 

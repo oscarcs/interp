@@ -82,24 +82,31 @@ module.exports = class Definitions {
     
     parser.infix('L_PAREN', 80, function (left) {
       let a = [];
+
+      /*
       if (left.id === 'PERIOD' || left.id === 'L_BRACKET') {
         this.type = 'TERNARY';
         this.children[0] = left.children[0];
         this.children[1] = left.children[1];
         this.children[2] = a;
       }
-      else {
-        this.type = 'BINARY';
-        this.children[0] = left;
-        this.children[1] = a;
-        if ((left.type !== 'UNARY' || left.id !== 'FUNCTION') &&
-          left.type !== 'IDENTIFIER' && left.id !== 'L_PAREN' &&
-          left.id !== 'AND' && left.id !== 'OR' && left.id !== 'QUESTION') {
-          
-          // @todo: better error message.
-          throw Error('Expected a variable name.')
-        }
+      else { */
+      
+      this.type = 'BINARY';
+      if (!this.hasOwnProperty('children')) {
+        this.children = [];
       }
+      this.children[0] = left;
+      this.children[1] = a;
+
+      if ((left.type !== 'UNARY' || left.id !== 'FUNCTION') &&
+        left.type !== 'IDENTIFIER' && left.id !== 'L_PAREN' &&
+        left.id !== 'AND' && left.id !== 'OR' && left.id !== 'QUESTION') {
+        
+        // @todo: better error message.
+        throw Error('Expected a variable name.')
+      }
+      //}
       
       // parse each argument.
       

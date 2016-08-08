@@ -12,10 +12,11 @@ let Evaluator = require('./evaluator');
 
 
 const p = 'test';
-const program = Loader.load('../test/' + p + '.program');
+const program = Loader.load('./test/' + p + '.program');
 
 let lexer = new Lexer(program);
 let tokens = lexer.tokenize();
+console.log(tokens);
 
 let parser = new Parser(tokens);
 let tree = parser.parse();
@@ -23,11 +24,11 @@ let string;
 try {
   string = JSON.stringify(tree, 
     ['key', 'name', 'message', 'value', 'type',
-     'children'], 4);
+     'children', 'newscope'], 4);
 } catch (e) {
   string = JSON.stringify(e, 
     ['name', 'message', 'from', 'to', 'key', 'value',
-     'type', 'children'], 4);
+     'type', 'children', 'newscope'], 4);
 }
 
 console.log('\n');
@@ -35,4 +36,5 @@ console.log(string);
 
 let evaluator = new Evaluator(parser);
 evaluator.addExtern('print', console.log); 
-evaluator.evaluate(tree);
+evaluator.addExtern('test', console.log); 
+// evaluator.evaluate(tree);
