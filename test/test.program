@@ -1,10 +1,7 @@
 extern print;
-extern test;
 
-function a (x) {
+let x = 0;
+while (x < 11) {
     print(x);
-    return 1;
+    x += 1;
 }
-
-let y = a(10);
-print(y);
