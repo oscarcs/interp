@@ -1,7 +1,9 @@
-extern print;
+extern output;
+extern assert;
 
 let x = 0;
-while (x < 11) {
-    print(x);
+while (x < 4) {
+    output(x);
     x += 1;
 }
+assert('0123');

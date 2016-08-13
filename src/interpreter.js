@@ -9,8 +9,11 @@ let Loader = require('./loader');
 let Lexer = require('./lexer');
 let Parser = require('./parser');
 let Evaluator = require('./evaluator');
+let Tests = require('./tests');
 
-
+let t = new Tests();
+t.run();
+/*
 const p = 'test';
 const program = Loader.load('./test/' + p + '.program');
 
@@ -38,3 +41,4 @@ let evaluator = new Evaluator(parser);
 evaluator.addExtern('print', console.log); 
 evaluator.addExtern('test', console.log); 
 evaluator.evaluate(tree);
+*/
