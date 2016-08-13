@@ -6,4 +6,5 @@ while (x < 4) {
     output(x);
     x += 1;
 }
+
 assert('0123');

@@ -1,0 +1,10 @@
+extern output;
+extern assert;
+
+let x = 'a';
+{
+    let x = 'b';
+    output(x);
+}
+
+assert('b');

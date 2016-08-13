@@ -11,10 +11,11 @@ module.exports = class Tests {
     this.currentTest = '';
     this.currentOutput = '';
     this.numPassed = 0;
-    this.tests = ['test'];
+    this.tests = ['assignment', 'while', 'if', 'scope'];
   }
 
   run() {
+    console.log('Running ' + this.tests.length + ' tests...');
     for (let i in this.tests) {
       this.runTest(this.tests[i]);
     }
@@ -22,6 +23,8 @@ module.exports = class Tests {
   }
 
   runTest(name) {
+    this.currentOutput = '';
+
     const program = Loader.load('./test/' + name + '.program');
     this.currentTest = name;
 
@@ -51,7 +54,7 @@ module.exports = class Tests {
       this.numPassed += 1;
     }
     else {
-      console.log('Test "' + this.currentTest + '" failed.');
+      console.warn('Test "' + this.currentTest + '" failed.');
     }
   }
 }

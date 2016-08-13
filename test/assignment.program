@@ -1,0 +1,12 @@
+extern output;
+extern assert;
+
+let x = 'a';
+let y = 'b';
+x = y;
+output(x);
+
+y = 'c';
+output(y);
+
+assert('bc');
