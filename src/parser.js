@@ -82,7 +82,7 @@ module.exports = class Parser {
         
       default:
         throw Error('Unexpected token: "' + type + '".');
-    }
+    } 
     
     this.token = Object.create(obj);
     this.token.value = value;
@@ -167,6 +167,7 @@ module.exports = class Parser {
     let that = this;
     let f = function(left) {
       
+      this.children = [];
       this.children[0] = left;
       this.children[1] = that.expression(bp);
       
@@ -186,6 +187,7 @@ module.exports = class Parser {
     
     let that = this;
     let f = function(left) {
+      this.children = [];
       this.children[0] = left;
       this.children[1] = that.expression(bp - 1);
       this.type = 'BINARY';
@@ -206,6 +208,7 @@ module.exports = class Parser {
     let that = this;
     let f = function() {
       that.scope.reserve(this);
+      this.children = [];
       this.children[0] = that.expression(70);
       this.type = 'UNARY';
       return this;
@@ -233,7 +236,8 @@ module.exports = class Parser {
       if (!that.scope.find(left.value)) {
         throw Error('Undefined identifier "' + left.value + '" cannot be assigned to.')
       }
-      
+
+      this.children = [];
       this.children[0] = left;
       this.children[1] = that.expression(9);
       

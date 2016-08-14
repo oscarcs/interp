@@ -51,6 +51,7 @@ module.exports = class Definitions {
     
     // ternary dot operator. ( expr ? statement : statement; )
     parser.infix('QUESTION', 20, function(left) {
+      this.children = [];
       this.children[0] = left;
       this.children[1] = parser.expression(0);
       parser.advance('COLON');
@@ -61,6 +62,7 @@ module.exports = class Definitions {
     
     // the dot operator selects a member of an object.
     parser.infix('PERIOD', 80, function(left) {
+      this.children = [];
       this.children[0] = left;
       if (parser.token.type !== 'IDENTIFIER') {
         throw Error('Expected a property name');
@@ -93,9 +95,7 @@ module.exports = class Definitions {
       else { */
       
       this.type = 'BINARY';
-      if (!this.hasOwnProperty('children')) {
-        this.children = [];
-      }
+      this.children = [];
       this.children[0] = left;
       this.children[1] = a;
 
@@ -192,6 +192,7 @@ module.exports = class Definitions {
         if (parser.token.id === 'EQUALS') {
           t = parser.token;
           parser.advance('EQUALS');
+          t.children = [];
           t.children[0] = ident;
           t.children[1] = parser.expression(0);
           t.type = 'BINARY';
@@ -212,6 +213,8 @@ module.exports = class Definitions {
     });
     
     parser.statement_symbol('WHILE', function() {
+      this.children = [];
+
       parser.advance('L_PAREN');
       this.children[0] = parser.expression(0);
       parser.advance('R_PAREN');
@@ -221,6 +224,8 @@ module.exports = class Definitions {
     });
     
     parser.statement_symbol('IF', function() {
+      this.children = [];
+
       parser.advance('L_PAREN');
       this.children[0] = parser.expression(0);
       parser.advance('R_PAREN');
@@ -248,6 +253,8 @@ module.exports = class Definitions {
     });
     
     parser.statement_symbol('RETURN', function() {
+      this.children = [];
+
       if (parser.token.id !== 'SEMI') {
         this.children[0] = parser.expression(0);
       }
@@ -263,7 +270,8 @@ module.exports = class Definitions {
     // function definition.
     
     parser.statement_symbol('FUNCTION', function() {
-      
+      this.children = [];
+
       // find the name of the function
       if (parser.token.id === 'IDENTIFIER') {
         parser.scope.define(parser.token);
