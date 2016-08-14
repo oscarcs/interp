@@ -1,0 +1,24 @@
+extern output;
+extern assert;
+
+let x = true || false;
+output(x);
+
+let y = true && true;
+output(y);
+
+let a = true;
+let b = false;
+let z = a == b;
+output(z);
+
+let q = 3 > 2;
+output(q);
+
+let r = 9 <= 2;
+output(r);
+
+let s = 0 != 1;
+output(s);
+
+assert('truetruefalsetruefalsetrue');

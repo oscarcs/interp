@@ -11,7 +11,7 @@ module.exports = class Tests {
     this.currentTest = '';
     this.currentOutput = '';
     this.numPassed = 0;
-    this.tests = ['assignment', 'while', 'if', 'scope'];
+    this.tests = ['assignment', 'comment', 'boolean', 'while', 'if', 'scope', 'control'];
   }
 
   run() {

@@ -1,0 +1,8 @@
+extern output;
+extern assert;
+
+let x = 0;
+// x = 1;
+output(x); // 0
+
+assert('0');
