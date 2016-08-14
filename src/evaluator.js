@@ -110,9 +110,12 @@ module.exports = class Evaluator {
           for (let i in node.children) {
             cur = this.parseNode(node.children[i]);
             if (cur && cur.stop) {
+              /*
               if (cur.value) {
                 returnVal = cur.value;
               }
+              */
+              returnVal = cur;
             }
           }
         }
@@ -283,10 +286,14 @@ module.exports = class Evaluator {
       return returnVal;
     }
     else if (node.value === 'BREAK') {
+
+      // @todo: is a boolean a good 'signal' to break a while loop?
+      
       let returnVal = {
         stop: true,
-        value: null,
+        value: false,
       };
+      return returnVal;
     }
     
     // implementation of the if statement.
@@ -318,9 +325,12 @@ module.exports = class Evaluator {
 
       let condition = node.children[0];
       let body = node.children[1];
-
+      
       while (this.parseNode(condition)) {
-        this.parseNode(body);
+        let cur = this.parseNode(body);
+        if (cur && typeof(cur.stop) !== 'undefined' && cur.stop) {
+          break;
+        }
       }
       return;
     }

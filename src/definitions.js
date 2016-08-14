@@ -250,6 +250,7 @@ module.exports = class Definitions {
         throw Error('Unreachable statement.');
       }
       this.type = 'STATEMENT';
+      return this;
     });
     
     parser.statement_symbol('RETURN', function() {
