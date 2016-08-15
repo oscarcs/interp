@@ -67,12 +67,9 @@ module.exports = class Evaluator {
       throw Error('Undefined node.');
     }
     
-    let that = this;
-    
     if (node.type === 'LITERAL') {
       return node.value;
     }
-    
     
     else if (node.type === 'IDENTIFIER') {
 
@@ -105,6 +102,11 @@ module.exports = class Evaluator {
       this.newScope();
       
       if (node.value === 'BLOCK') {
+
+        // the returnVal is a control flow object with 'value' and 'stop'
+        // fields. It is used to return an exit value from a block, that
+        // can bubble up and control program flow.
+
         let returnVal = null;
         if (node.children) {
           let cur;
@@ -120,6 +122,7 @@ module.exports = class Evaluator {
         }
         return returnVal;
       }
+
       else {
         if (node.children) {
           for (let i in node.children) {
@@ -146,14 +149,15 @@ module.exports = class Evaluator {
     else if (node.type === 'FUNCTION') {
       let scope = node.children[0].scope;
       
+      // get the names of arguments to this function definition.
       let curArgs = [];
-      // @todo: rename parser output obj to 'args'?
       for (let i in node.children[0]) { 
         curArgs.push(node.children[0][i].value);
       }
       
       let body = node.children[1];
           
+      // object to be stored in the current scope.
       let id = {
         name: node.name,
         value: body,
@@ -164,11 +168,9 @@ module.exports = class Evaluator {
       this.scope.define(id);
     }
     
-    
     else if (node.type === 'STATEMENT') {
       return this.parseStatement(node);
     }
-    
     
     else {
       throw Error('Unsupported node type: ' + node.type);
@@ -203,6 +205,7 @@ module.exports = class Evaluator {
       if (v) {
         if (!v.reserved) {
           if (cur) {
+            // identifier += value | identifier -= value :
             if (node.value === 'INCREMENT_ASSIGN') value = cur + value;
             if (node.value === 'DECREMENT_ASSIGN') value = cur - value;
           }
@@ -224,8 +227,6 @@ module.exports = class Evaluator {
       return value;
     }
     
-    // call a function.
-    
     else if (node.value === 'CALL') {
       let name = node.children[0].value;
       let ident = this.scope.find(name) || this.globals[name];
@@ -233,12 +234,14 @@ module.exports = class Evaluator {
       let argNames = ident.args;
       let argValues = node.children[1];
 
-      // get the argument values.
+      // get the parsed values of the arguments.
       let args = [];
       for (let i in argValues) {
         args.push(this.parseNode(argValues[i]));
       }
 
+      // if the value of the call is an actual function (an extern),
+      // then call it.
       if (typeof(ident) === 'function') {
         return ident.apply(null, args);
       }
@@ -253,18 +256,20 @@ module.exports = class Evaluator {
         }
         this.scope.define(id);
       }
+
+      // check if the result is a control flow object -
+      // if it is, return the value.
+
       let result = this.parseNode(ident.value);
       if (result.value) return result.value;
       return result;
     }
-    
     
     else if (this.operators[node.value]) {
       
       // handle mathematical operators.
       return this.operators[node.value](this.parseNode(node.children[0]), this.parseNode(node.children[1]));
     }
-    
     
     else {
       throw Error('Unsupported binary operation: ' + node.type);
@@ -327,6 +332,7 @@ module.exports = class Evaluator {
       let condition = node.children[0];
       let body = node.children[1];
       
+      // parse nodes unless a breaking statement is encountered.
       while (this.parseNode(condition)) {
         let cur = this.parseNode(body);
         if (cur && typeof(cur.stop) !== 'undefined' && cur.stop) {
