@@ -61,7 +61,7 @@ module.exports = class Lexer {
     
     this.keywords = {
       'let':      'VAR',
-      'function': 'FUNCTION',
+      'fn':       'FUNCTION',
       'while':    'WHILE',
       'if':       'IF',
       'else':     'ELSE',

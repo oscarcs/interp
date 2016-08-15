@@ -75,6 +75,7 @@ module.exports = class Evaluator {
     
     
     else if (node.type === 'IDENTIFIER') {
+
       // check the current args first.
       let v = this.scope.find(node.value) 
            || this.globals[node.value]; 
@@ -226,7 +227,6 @@ module.exports = class Evaluator {
     // call a function.
     
     else if (node.value === 'CALL') {
-      
       let name = node.children[0].value;
       let ident = this.scope.find(name) || this.globals[name];
       
@@ -245,17 +245,17 @@ module.exports = class Evaluator {
 
       // @todo: refactor this so we can call a single
       //        'defineIdentifier' function.
-      for (let i in argNames) {
-        //console.log(argNames[i]);        
+      for (let i in argNames) {       
         let id = {
           name: argNames[i],
           reserved: false,
-          value: argValues[i],
+          value: args[i],
         }
         this.scope.define(id);
       }
-
-      return this.parseNode(ident.value);
+      let result = this.parseNode(ident.value);
+      if (result.value) return result.value;
+      return result;
     }
     
     
