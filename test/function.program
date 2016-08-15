@@ -1,0 +1,15 @@
+extern output;
+extern assert;
+
+fn myFunc(x)
+{
+    let y = 4;
+    y = y + x;
+    return y;
+}
+
+let x = myFunc(4);
+output(x);
+
+assert('8');
+
