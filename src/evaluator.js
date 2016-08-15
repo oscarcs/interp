@@ -78,6 +78,16 @@ module.exports = class Evaluator {
            || this.globals[node.value]; 
       
       if (v) {
+
+        // if v has an arguments property it must be a function,
+        // so we pass by reference instead of by value.
+        // we would have a better system if we had typed variables.
+        
+        if (v.args) {
+          return v;
+        }
+
+        // pass by value.
         return typeof(v.value) !== 'undefined' ? v.value : v;
       }
       else {
@@ -196,7 +206,7 @@ module.exports = class Evaluator {
       let ident = node.children[0].value;
       let value = this.parseNode(node.children[1]);
       let cur = this.parseNode(node.children[0]);
-      
+
       // check the scope variable and store the
       // value in the variable table if it is acceptable.
       
@@ -213,6 +223,10 @@ module.exports = class Evaluator {
             name: ident,
             reserved: false,
             value: value,
+          }
+          if (typeof(value.value) !== 'undefined') {
+            id = value;
+            id.name = ident;
           }
           this.scope.define(id);
         }
@@ -253,6 +267,10 @@ module.exports = class Evaluator {
           name: argNames[i],
           reserved: false,
           value: args[i],
+        }
+        if (typeof(args[i].value) !== 'undefined') {
+            id = args[i];
+            id.name = ident;
         }
         this.scope.define(id);
       }
