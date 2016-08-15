@@ -1,0 +1,22 @@
+extern output;
+extern assert;
+
+let i = 0;
+let x = 0;
+while (x < 3) 
+{
+    let y = 0;
+    while (y < 3)
+    {
+        if (y == 2)
+        {
+           break;
+        }
+        i += 1;
+        y += 1;
+    }
+    x += 1;
+}
+output(i);
+
+assert('6');
