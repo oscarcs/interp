@@ -109,13 +109,11 @@ module.exports = class Evaluator {
           let cur;
           for (let i in node.children) {
             cur = this.parseNode(node.children[i]);
-            if (cur && cur.stop) {
-              /*
-              if (cur.value) {
-                returnVal = cur.value;
-              }
-              */
+            if (cur) {
               returnVal = cur;
+              if (cur.stop) {
+                break;
+              }
             }
           }
         }
@@ -311,14 +309,17 @@ module.exports = class Evaluator {
       }
       
       // parse and execute the code branch itself.
+      let returnVal;
       if (branch instanceof Array) {
         for (let i in branch) {
-          if (branch[i]) this.parseNode(branch[i]);
+          if (branch[i]) returnVal = this.parseNode(branch[i]);
         }
       }
       else {
-        if (branch) this.parseNode(branch);
+        if (branch) returnVal = this.parseNode(branch);
       }
+
+      return returnVal;
     }
 
     else if (node.value === 'WHILE') {

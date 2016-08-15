@@ -4,7 +4,10 @@ extern assert;
 let x = 0;
 while (x < 100)
 {
-    if (x == 3) { break; }
+    if (x == 3)
+    { 
+        break; 
+    }
     x += 1;
 }
 output(x);
