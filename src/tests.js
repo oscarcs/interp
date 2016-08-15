@@ -12,7 +12,8 @@ module.exports = class Tests {
     this.currentOutput = '';
     this.numPassed = 0;
     this.tests = ['assignment', 'comment', 'boolean', 'while', 
-      'nested_while','if', 'scope', 'break', 'nested_break', 'function'];
+      'nested_while','if', 'scope', 'break', 'nested_break', 
+      'function', 'first_class_function'];
   }
 
   run() {
