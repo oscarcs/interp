@@ -175,9 +175,9 @@ module.exports = class Lexer {
   skipEmpty() {
     while (this.pos < this.buflen) {
       let c = this.buf.charAt(this.pos);
+      let next_c = this.buf.charAt(this.pos + 1);
       
       if (c === '/') {
-        let next_c = this.buf.charAt(this.pos + 1);
         if (next_c === '/') {
           this.processComment();
         }
@@ -186,7 +186,7 @@ module.exports = class Lexer {
       if (c === ' ' || c === '\t' || c === '\r' || c === '\n') {
         this.pos++;
       }
-      else if (c !== '/') {
+      else if (!(c === '/' && next_c === '/')) {
         break;
       }
     }
