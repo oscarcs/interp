@@ -54,7 +54,7 @@ module.exports = class Definitions {
       this.children = [];
       this.children[0] = left;
       this.children[1] = parser.expression(0);
-      parser.advance('COLON');
+      parser.advance('COLON', 'Ternary expressions should be colon-separated.');
       this.children[2] = parser.expression(0);
       this.type = 'TERNARY';
       return this;
@@ -104,7 +104,7 @@ module.exports = class Definitions {
         left.id !== 'AND' && left.id !== 'OR' && left.id !== 'QUESTION') {
         
         // @todo: better error message.
-        throw Error('Expected a variable name.')
+        throw Error('Expected a variable name.');
       }
       //}
       
@@ -116,7 +116,7 @@ module.exports = class Definitions {
           if (parser.token.id !== 'COMMA') {
             break;
           }
-          parser.advance('COMMA');
+          parser.advance('COMMA', 'Function arguments should be comma-separated.');
         }
       }
       parser.advance('R_PAREN');
@@ -163,7 +163,7 @@ module.exports = class Definitions {
     parser.statement_symbol('L_BRACE', function() {
       parser.newScope();
       let a = parser.statements();
-      parser.advance('R_BRACE');
+      parser.advance('R_BRACE', 'Block should end in a "}"');
       parser.scope.pop();
       
       this.value = 'BLOCK';
@@ -183,7 +183,7 @@ module.exports = class Definitions {
         ident = parser.token;
         
         if (ident.type !== 'IDENTIFIER') {
-          throw Error ('Expected indentifier.');
+          throw Error('Can only assign to an identifier.');
         }
         
         parser.scope.define(ident);
@@ -207,7 +207,7 @@ module.exports = class Definitions {
         }
         parser.advance('COMMA');
       }
-      parser.advance('SEMI');
+      parser.advance('SEMI', 'Missing semicolon after assignment.');
       
       return a.length === 0 ? null : (a.length === 1 ? a[0] : a);
     });
@@ -227,6 +227,7 @@ module.exports = class Definitions {
       this.children = [];
 
       parser.advance('L_PAREN');
+      // parse the condition.
       this.children[0] = parser.expression(0);
       parser.advance('R_PAREN');
       this.children[1] = parser.block();
@@ -234,20 +235,20 @@ module.exports = class Definitions {
       if (parser.token.id === 'ELSE') {
         parser.scope.reserve(parser.token);
         parser.advance('ELSE');
+
+        // handle 'else if' case if necessary.
         this.children[2] = parser.token.id === 'IF' ? parser.statement() : parser.block();
       }
-      else {
-        //this.children[2] = null;
-      }
+
       this.type = 'STATEMENT';
       return this;
     });
     
     parser.statement_symbol('BREAK', function() {
-      parser.advance('SEMI');
+      parser.advance('SEMI', 'Break statement should be followed by a semicolon.');
       if (parser.token.id !== 'R_BRACE') {
-        // @todo: better error message.
-        throw Error('Unreachable statement.');
+        // @todo: make this into a warning.
+        throw Error('Unreachable code after break statement.');
       }
       this.type = 'STATEMENT';
       return this;
@@ -259,10 +260,10 @@ module.exports = class Definitions {
       if (parser.token.id !== 'SEMI') {
         this.children[0] = parser.expression(0);
       }
-      parser.advance('SEMI');
+      parser.advance('SEMI', 'Return statement should be followed by a semicolon.');
       if (parser.token.id !== 'R_BRACE') {
-        // @todo: better error message.
-        throw Error('Unreachable statement.');
+        // @todo: make this into a warning.
+        throw Error('Unreachable code after return statement.');
       }
       this.type = 'STATEMENT';
       return this;
