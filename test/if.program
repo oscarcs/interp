@@ -5,10 +5,15 @@ let x = 0;
 if (x == 0)
 {
     output('a'); 
+    x = 1;
 }
-else
+else if (x == 1)
 {
     output('b');
+}
+else 
+{
+    output('c');
 }
 
 assert('a');
