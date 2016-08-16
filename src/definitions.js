@@ -41,6 +41,7 @@ module.exports = class Definitions {
     parser.infix('MINUS', 50);
     parser.infix('MULTIPLY', 60);
     parser.infix('DIVIDE', 60);
+    parser.infix('MODULO', 60);
     
     parser.infix('EQUALITY', 40);
     parser.infix('INEQUALITY', 40);
