@@ -19,7 +19,7 @@ module.exports = class Parser {
     this.scope;
     this.newScope();
 
-    // add the symbols we will need
+    // add the symbols we will need for parsing.s
     Definitions.addDefinitions(this);
   }
   
@@ -28,6 +28,8 @@ module.exports = class Parser {
     let s = this.statements();
     this.advance('END');
     this.scope.pop(); 
+
+    // create a root node containing a list of program statements.
     let root = new ASTNode();
     root.type = 'SCOPE';
     root.value = 'PROGRAM';
@@ -38,9 +40,17 @@ module.exports = class Parser {
   // makes a new token object from the next simple token 
   // in the array and assigns it to the this.token variable.
 
-  advance(expected) {
+  advance(expected, errorMsg) {
     if (expected && this.token.id !== expected) {
-      throw Error('Expected token with value "' + expected + '".');
+      if (typeof(errorMsg) !== 'undefined') {
+        throw Error('Expected "' + expected +'": ' + errorMsg);
+      }
+      else if (this.token.id === 'IDENTIFIER') {
+        throw Error('Unexpected identifier "' + this.token.value + '".');
+      }
+      else {
+        throw Error('Expected token with value "' + expected + '".');
+      }
     }
     
     if (this.cur >= this.tokens.length) {
@@ -58,6 +68,7 @@ module.exports = class Parser {
     
     switch (type) {
       case 'IDENTIFIER':
+        // look for a defined ident, otherwise set up for assigment.
         let cur = this.scope.find(value);
         if (cur) {
           obj = cur;
@@ -81,7 +92,7 @@ module.exports = class Parser {
         break;
         
       default:
-        throw Error('Unexpected token: "' + type + '".');
+        throw Error('Unexpected token of type "' + type + '".');
     } 
     
     this.token = Object.create(obj);
@@ -92,7 +103,6 @@ module.exports = class Parser {
   }
   
   // establish a new scope for a function or a block.
-  // makes a new instance of the original scope prototype.
   
   newScope() {
     let s = this.scope;
@@ -187,9 +197,11 @@ module.exports = class Parser {
     
     let that = this;
     let f = function(left) {
+      
       this.children = [];
       this.children[0] = left;
       this.children[1] = that.expression(bp - 1);
+      
       this.type = 'BINARY';
       return this;
     }
@@ -228,9 +240,8 @@ module.exports = class Parser {
       
       // check that the left operand is valid.
       
-      if (left.type !== 'IDENTIFIER') { // && left.id !== 'PERIOD' && left.id !== 'L_BRACKET'
-        //@todo: better error message.
-        throw Error('Bad lvalue');
+      if (left.type !== 'IDENTIFIER') {
+        throw Error('Cannot assign to left operand of type "' + left.type + '". Assign to identifier instead.');
       }
       
       if (!that.scope.find(left.value)) {
@@ -250,7 +261,7 @@ module.exports = class Parser {
       return this;
     });
   }
-  
+
   constant(name, value) {
     let x = this.symbol(name);
     let that = this;
@@ -305,7 +316,6 @@ module.exports = class Parser {
       }
     }
     return a;
-   // return a.length === 0 ? null : (a.length === 1 ? a[0] : a);
   }
   
   // adds a new statement symbol to the symbol table.
@@ -316,14 +326,9 @@ module.exports = class Parser {
     return x;
   }
   
-  // the block function parses a block.
-  
   block() {
     let t = this.token;
     this.advance('L_BRACE');
     return t.std();
   }
-  
-  
-  
 }
