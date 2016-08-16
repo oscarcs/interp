@@ -1,0 +1,13 @@
+extern output;
+extern assert;
+
+let x = 3 * 2;
+output(x);
+
+let y = 10 / 2;
+output(y);
+
+let z = 6 % 4;
+output(z);
+
+assert('652');

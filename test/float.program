@@ -1,0 +1,8 @@
+extern output;
+extern assert;
+
+let x = 1.54;
+let y = 8.43;
+output(x * y);
+
+assert('12.9822');
