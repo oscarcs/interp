@@ -1,0 +1,17 @@
+extern output;
+extern assert;
+
+
+let y = 10;
+fn test()
+{
+    return y;
+}
+
+{
+    let y = 1;
+    let z = test();
+    output(z);
+}
+
+assert('1');
