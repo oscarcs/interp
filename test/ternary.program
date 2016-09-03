@@ -1,0 +1,14 @@
+extern output;
+extern assert;
+
+let x = 0;
+let y = 0;
+x == 0 ? y = 1 : y = 2;
+output(y);
+
+let a = 5;
+let b = true;
+a = (!b) ? 2 : 3;
+output(a);
+
+assert('13');

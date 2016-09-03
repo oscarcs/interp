@@ -13,7 +13,7 @@ module.exports = class Tests {
     this.numPassed = 0;
     this.tests = ['assignment', 'comment', 'boolean', 'mathematical', 'float', 'while', 
       'nested_while','if', 'scope', 'break', 'nested_break', 
-      'function', 'function_scope', 'first_class_function'];
+      'function', 'function_scope', 'first_class_function', 'ternary'];
   }
 
   run() {
