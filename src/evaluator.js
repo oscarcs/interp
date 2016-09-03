@@ -154,6 +154,10 @@ module.exports = class Evaluator {
     else if (node.type === 'BINARY') {
       return this.parseBinary(node);
     }
+
+    else if (node.type === 'TERNARY') {
+      return this.parseStatement(node);
+    }
     
     
     else if (node.type === 'FUNCTION') {
@@ -317,9 +321,11 @@ module.exports = class Evaluator {
       return returnVal;
     }
     
-    // implementation of the if statement.
+    // implementation of conditionals.
     
-    else if (node.value === 'IF') {
+    else if (node.value === 'IF'
+          || node.value === 'TERNARY') {
+
       let cond = this.parseNode(node.children[0]);
       
       // choose the right code branch to execute.

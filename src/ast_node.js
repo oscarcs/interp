@@ -23,6 +23,7 @@ module.exports = class ASTNode {
       'IDENTIFIER',
       'FUNCTION',
       'STATEMENT',
+      'TERNARY',
     ];
   }
   

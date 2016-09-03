@@ -58,6 +58,7 @@ module.exports = class Definitions {
       parser.advance('COLON', 'Ternary expressions should be colon-separated.');
       this.children[2] = parser.expression(0);
       this.type = 'TERNARY';
+      this.value = 'TERNARY';
       return this;
     });
     
