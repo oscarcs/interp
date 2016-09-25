@@ -1,0 +1,13 @@
+;Simple loop example.
+PUSH 0
+PUSH 1
+ADD
+OUT
+PUSH 10 ;ASCII LF
+COUT
+POP
+DUP
+PUSH 10
+CMP
+PUSH 1
+JZ

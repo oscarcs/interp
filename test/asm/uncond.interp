@@ -1,0 +1,12 @@
+;Test unconditional jump.
+NOP
+PUSH 1
+PUSH 1
+PUSH 6
+JMP
+SUB
+ADD
+OUT
+PUSH 10 ;ASCII LF
+COUT
+POP
