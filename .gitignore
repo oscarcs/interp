@@ -1,2 +1,3 @@
 .vscode/
-/src/interp
+src/interp
+interp

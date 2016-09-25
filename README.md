@@ -1,6 +1,7 @@
 # interp
 A small lexer, parser, and interpreter for an invented programming language, 
-written in Node-flavoured ES6.
+written in Node-flavoured ES6. A stack-based bytecode interpreter written in C 
+is in progress.
 
 ## Why?
 Written as a learning exercise, to investigate top-down operator precedence 
@@ -11,9 +12,9 @@ Based on the [great tutorial][1] by Douglas Crockford, as well as [other][2]
 [articles][3].
 
 ## Language Syntax
-As this is a hobby project, I haven't written a complete specification, though 
-it broadly follows JavaScript syntax. The 'test' folder contains sample code 
-in the language which (hopefully) functions correctly. Note however that the 
+As this is a hobby project, I haven't written a specification, though it 
+broadly follows JavaScript syntax. The 'test' folder contains sample code in 
+the language which (hopefully) functions correctly. Note however that the 
 tests aren't exhaustive and there are almost certainly bugs and unimplemented 
 features.
 
@@ -46,6 +47,16 @@ node /src/interpreter.js
 ```
 This will run the tests. To run an individual program, modify `runTests` in 
 `interpreter.js` and change the file path.
+
+To use the C-based stack interpreter, compile:
+```
+gcc src/interp.c -o interp
+```
+and run one of the tests:
+```
+src/interp test/asm/cond.interp
+```
+(Tested only on Linux.)
 
 ## Next steps
 The code doesn't really follow best practise, as it is indtended as a learning 
