@@ -31,26 +31,26 @@ int depth = -1;
 
 int main(int argc, char **argv)
 {
-	/* 
-	 * TABLE OF INSTRUCTIONS :^)
-	 * 0   |   NOP
-	 * 1   |   PUSH
-	 * 2   |   POP
-	 * 3   |   OUT
-     * 4   |   COUT
-	 * 5   |   ADD
-	 * 6   |   SUB 
-	 * 7   |   MUL
-	 * 8   |   DIV
-	 * 9   |   DUP
-	 * 10  |   AND
-	 * 11  |   OR
-	 * 100 |   JMP	
-	 * 101 |   CMP
-	 * 102 |   JNZ
-	 * 103 |   JZ
-	 */
-    
+    /* 
+     * TABLE OF INSTRUCTIONS :^)
+     * 0    |   NOP
+     * 1    |   PUSH
+     * 2    |   POP
+     * 3    |   OUT
+     * 4    |   COUT
+     * 5    |   ADD
+     * 6    |   SUB
+     * 7    |   MUL
+     * 8    |   DIV
+     * 9    |   DUP
+     * 10   |   AND
+     * 11   |   OR
+     * 100  |   JMP
+     * 101  |   CMP
+     * 102  |   JNZ
+     * 103  |   JZ
+     */
+
     if (argc < 2)
     {
         printf("Interp: Provide a filename to load.\n");
@@ -58,17 +58,16 @@ int main(int argc, char **argv)
     }
     load_asm(argv[1]);
 
-	/* Reset the instruction pointer after loading */
-	ip = -1;
+    /* Reset the instruction pointer after loading */
+    ip = -1;
 
-	while (ip < MAX_INSTR)
-	{
-		if (exec(instructions[ip], args[ip])) return 0;
-		ip++;
-		if (DEBUG_STACK) dump_stack();
-	}    
+    while (ip < MAX_INSTR)
+    {
+        if (exec(instructions[ip], args[ip])) return 0;
+        ip++;
+        if (DEBUG_STACK) dump_stack();
+    }
 
-    
     return 0;
 }
 
@@ -111,7 +110,7 @@ int exec(int code, int arg1)
         case 0: /* NOP */ ;
 
         break;
-    
+
         case 1: if (DEBUG_INSTR) printf("PUSH %i\n", arg1);
             /* Push a value onto the stack */
             push(arg1);
@@ -126,7 +125,7 @@ int exec(int code, int arg1)
             /* Print the top value on the stack. */
             printf("%i", peek());
         break;
-            
+
         case 4: if (DEBUG_INSTR) printf("COUT \n");
             /* Print the top value on the stack as a char. */
             printf("%c", peek());
@@ -140,12 +139,12 @@ int exec(int code, int arg1)
         break;
 
         case 6: if (DEBUG_INSTR) printf("SUB \n");
-        	/* Subtract the second  value from the top value. */
-			a = pop();
-			b = pop();
-			push(a - b);			
+            /* Subtract the second  value from the top value. */
+            a = pop();
+            b = pop();
+            push(a - b);
         break;
-        
+
         case 7: if (DEBUG_INSTR) printf("MUL \n");
             /* Multiply the top two values and push result. */
             a = pop();
@@ -153,68 +152,68 @@ int exec(int code, int arg1)
             push(a * b);
         break;
 
-		case 8: if (DEBUG_INSTR) printf("DIV \n");
-        	/* Divide the top two values and push result. */
+        case 8: if (DEBUG_INSTR) printf("DIV \n");
+            /* Divide the top two values and push result. */
             a = pop();
             b = pop();
             push(a / b);
         break;
 
         case 9: if (DEBUG_INSTR) printf("DUP \n");
-        	/* Duplicate the top value on the stack. */
-        	a = peek();
-        	push(a);
+            /* Duplicate the top value on the stack. */
+            a = peek();
+            push(a);
         break;
 
         case 10: if (DEBUG_INSTR) printf("AND \n");
-        	/* Bitwise AND the top two values. */
+            /* Bitwise AND the top two values. */
             a = pop();
-        	b = pop();
-        	push(a & b);
+            b = pop();
+            push(a & b);
         break;
 
         case 11: if (DEBUG_INSTR) printf("OR \n");
-        	/* Bitwise AND the top two values. */
+            /* Bitwise AND the top two values. */
             a = pop();
-        	b = pop();
-        	push(a | b);
+            b = pop();
+            push(a | b);
         break;
 
-		case 100: if (DEBUG_INSTR) printf("JMP \n");
-			/* Unconditionally jump to address at top of stack. */;
-			a = pop();
-			jump(a);
-		break;
+        case 100: if (DEBUG_INSTR) printf("JMP \n");
+            /* Unconditionally jump to address at top of stack. */;
+            a = pop();
+            jump(a);
+        break;
 
-		case 101: if (DEBUG_INSTR) printf("CMP \n");
-			/* Compare top two values in stack, push 1 if same.  */
-			a = pop();
-			b = pop();
-			a == b ? push(1) : push(0);
-		break;
+        case 101: if (DEBUG_INSTR) printf("CMP \n");
+            /* Compare top two values in stack, push 1 if same.  */
+            a = pop();
+            b = pop();
+            a == b ? push(1) : push(0);
+        break;
 
-		case 102: if (DEBUG_INSTR) printf("JNZ \n");
-			/* Jump to top if second value is nonzero. */
-			a = pop();
-			b = pop();
-			if (b) {
-				if (jump(a)) return NIL;
-			}
-		break;
+        case 102: if (DEBUG_INSTR) printf("JNZ \n");
+            /* Jump to top if second value is nonzero. */
+            a = pop();
+            b = pop();
+            if (b) {
+                if (jump(a)) return NIL;
+            }
+        break;
 
-		case 103: if (DEBUG_INSTR) printf("JZ \n");
-			/* Jump to top if second value is zero. */
-			a = pop();
-			b = pop();
-			if (!b) {
-				if (jump(a)) return NIL;
-			}
-		break;
-				
+        case 103: if (DEBUG_INSTR) printf("JZ \n");
+            /* Jump to top if second value is zero. */
+            a = pop();
+            b = pop();
+            if (!b) {
+                if (jump(a)) return NIL;
+            }
+        break;
+
         default:
             printf("ERROR: Invalid instruction: %i\n", code);
             return NIL;
-            break;
+        break;
     }
     if (a == NIL || b == NIL) return NIL;
     return 0;
@@ -244,7 +243,7 @@ int instr_to_code(char* line)
         {
             i++;
         }
-    
+
         length = i;
 
         /* Not a valid instruction. */
@@ -252,9 +251,9 @@ int instr_to_code(char* line)
         {
             printf("ERROR: Not a valid instruction: %s\n", line);
         } 
-    
+
         /* Copy instruction only. */
-        
+
         for (i = 0; i < length; i++)
         {
             instr[i] = line[i];
@@ -266,7 +265,7 @@ int instr_to_code(char* line)
     int start = length;
     i = start;
     char arg[MAX_LINE_LEN] = {0}; 
-    
+
     {
         /* Trim front of string */
         while(line[i] == ' ')
@@ -274,7 +273,7 @@ int instr_to_code(char* line)
             i++;
         }
         start = i;
-        
+
         /* Get the argument */
         while (line[i] != '\n' && line[i] != '\r' && line[i] != ';' &&
                line[i] != '\0' && line[i] != ' ')
@@ -389,17 +388,17 @@ int instr_to_code(char* line)
 
 int jump(int addr)
 {
-	if (addr < MAX_INSTR)
-	{
-		/* Adjust addresses such that 0 gives the first instruction */
-		ip = (addr-1); 
-	}
-	else 
-	{
-		printf("Error: Attempted to jump out of bounds: %i\n", addr);
-		return NIL;
-	}
-	return 0;
+    if (addr < MAX_INSTR)
+    {
+        /* Adjust addresses such that 0 gives the first instruction */
+        ip = (addr-1); 
+    }
+    else 
+    {
+        printf("Error: Attempted to jump out of bounds: %i\n", addr);
+        return NIL;
+    }
+    return 0;
 }
 
 void push(int x)
