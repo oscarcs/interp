@@ -3,19 +3,24 @@
 #include <string.h>
 
 #define NIL 9920901
-#define MAX_DEPTH 30
-#define MAX_INSTR 100
-#define MAX_LINE_LEN 100
+#define MAX_DEPTH 100
+#define MAX_INSTR 1000
+#define MAX_LINE_LEN 81
 #define DEBUG_INSTR 0
 #define DEBUG_STACK 0
 #define DEBUG_ASSEMBLER 0
+#define DEBUG_LABELS 0
 
 void dump_stack(void);
 void add_instr(int code, int arg1);
-void add_label(int addr);
+void add_label(int addr, char* name);
 int exec(int code, int arg1);
 void load_asm(char* filename);
+int is_label(char* line);
+int is_labelref(char* line);
+int labelref_to_addr(char* label_name);
 int instr_to_code(char* line);
+int is_terminating(char x);
 int jump(int addr);
 void push(int x);
 int pop(void);
@@ -26,6 +31,7 @@ int lp = 0; /* Label pointer */
 int instructions[MAX_INSTR] = {0};
 int args[MAX_INSTR] = {0};
 int labels[MAX_INSTR] = {NIL};
+char label_names[MAX_INSTR][MAX_LINE_LEN] = {0};
 int stack[MAX_DEPTH];
 int depth = -1;
 
@@ -95,10 +101,19 @@ void add_instr(int code, int arg1)
     }
 }
 
-void add_label(int addr)
+void add_label(int addr, char* name)
 {
-    labels[lp] = addr;
-    lp++;
+    if (lp < MAX_INSTR)
+    {
+        if (DEBUG_LABELS) printf("Label: '%s' (%i) is %i.\n", name, lp, addr);
+        labels[lp] = addr;
+        strcpy(label_names[lp], name);
+        lp++;
+    }
+    else
+    {
+        printf("Error: Max number of labels exceeded: %i\n", lp);
+    }
 }
 
 int exec(int code, int arg1)
@@ -223,60 +238,183 @@ void load_asm(char* filename)
 {
     FILE *fp;
     fp = fopen(filename, "r");
-    while(1)
+    if (fp != NULL)
     {
-        char line[MAX_LINE_LEN];
-        if (fgets(line, 150, fp) == NULL) break;
-        instr_to_code(line);
+        while (1)
+        {
+            char line[MAX_LINE_LEN];
+            if (fgets(line, 150, fp) == NULL) break;
+            
+            //printf("%s", line);
+            
+            /* Check if it's a label or an instruction. */
+            if (is_label(line))
+            {
+                
+                /* TODO: Move this into own function using heap. */
+                char name[MAX_LINE_LEN] = {0};
+                int i = 0;
+                int start = 0;
+                int length = 0;
+                {
+                    /* Trim front of string */
+                    while (line[i] == ' ' || line[i] == '\t')
+                    {
+                        i++;
+                    }
+                    start = i;
+
+                    /* Get the name */
+                    while (!is_terminating(line[i]) && line[i] != ':')
+                    {
+                        i++;
+                    }
+                    length = i;
+
+                    /* Copy name */
+                    for (i = start; i < length; i++)
+                    {
+                        name[i - start] = line[i];
+                    }
+                    name[length] = '\0';
+                }
+                
+                add_label(ip, name);
+            }
+            else if (is_labelref(line))
+            {
+                /* TODO: Move this into own function using heap. */
+                char name[MAX_LINE_LEN] = {0};
+                int i = 0;
+                int start = 0;
+                int length = 0;
+                {
+                    /* Trim front of string */
+                    while (line[i] == ' ' || line[i] == '\t' || line[i] == '@')
+                    {
+                        i++;
+                    }
+                    start = i;
+
+                    /* Get the name */
+                    while (!is_terminating(line[i]))
+                    {
+                        i++;
+                    }
+                    length = i;
+
+                    /* Copy name */
+                    for (i = start; i < length; i++)
+                    {
+                        name[i - start] = line[i];
+                    }
+                    name[length] = '\0';
+                }
+                
+                int addr = labelref_to_addr(name);
+                add_instr(1, addr);
+            }
+            else
+            {
+                instr_to_code(line);
+            }
+        }
     }
+    else
+    {
+        printf("Error: File '%s' not found.\n", filename);
+    }
+}
+
+int is_label(char* line)
+{
+    int i = 0;
+    while (!is_terminating(line[i]))
+    {
+        if (line[i] == ':') return 1;
+        i++;
+    }
+    return 0;
+}
+
+int is_labelref(char* line)
+{
+    int i = 0;
+    while (!is_terminating(line[i]))
+    {
+        if (line[i] == '@') return 1;
+        i++;
+    }
+    return 0;
+}
+
+int labelref_to_addr(char* label_name)
+{
+    int addr = NIL;
+    char* cur;
+    for (int i = 0; i < lp; i++)
+    {
+        cur = label_names[i];
+        if (strcmp(cur, label_name) == 0)
+        {
+            addr = labels[i];
+            break;
+        }
+    }
+    if (DEBUG_LABELS) printf("'%s' addr: %i\n", label_name, addr);
+    return addr;
 }
 
 int instr_to_code(char* line)
 {
     int i = 0;
-    int length;
+    int length = 0;
+    int start = 0;
+    
     char instr[MAX_LINE_LEN] = {0};
-
-    {
-        while (line[i] != '\n' && line[i] != '\r' && line[i] != ';' &&
-               line[i] != '\0' && line[i] != ' ')
+    {   
+        /* Trim front of string */
+        while (line[i] == ' ' || line[i] == '\t')
         {
             i++;
         }
+        start = i;
 
+        /* Get the instruction */
+        while (!is_terminating(line[i]) && line[i] != ' ')
+        { 
+            i++;
+        }
         length = i;
-
-        /* Not a valid instruction. */
+        
+        /* Not a valid instruction! */
         if (length > MAX_LINE_LEN)
         {
-            printf("ERROR: Not a valid instruction: %s\n", line);
+            printf("ERROR: Not a valid instruction: '%s'\n", line);
         } 
 
-        /* Copy instruction only. */
-
-        for (i = 0; i < length; i++)
+        /* Copy instruction */
+        for (i = start; i < length; i++)
         {
-            instr[i] = line[i];
+            instr[i - start] = line[i];
         }
         instr[length] = '\0';
-        /* printf("instr: %s\n", instr); */
+        if (DEBUG_ASSEMBLER) printf("Instr: %s\n", instr);
     }
 
-    int start = length;
+    start = length;
     i = start;
     char arg[MAX_LINE_LEN] = {0}; 
-
     {
         /* Trim front of string */
-        while(line[i] == ' ')
+        while (line[i] == ' ' || line[i] == '\t')
         {
             i++;
         }
         start = i;
 
         /* Get the argument */
-        while (line[i] != '\n' && line[i] != '\r' && line[i] != ';' &&
-               line[i] != '\0' && line[i] != ' ')
+        while (!is_terminating(line[i]))
         { 
             i++;
         }
@@ -299,6 +437,7 @@ int instr_to_code(char* line)
     }
 
     /*
+     * @OPTIMIZATION
      * Instruction comparison ladder. Could be replaced with length or
      * first character-based comparison for speed.
      */
@@ -386,6 +525,12 @@ int instr_to_code(char* line)
     return NIL; 
 }
 
+int is_terminating(char x)
+{
+    return (x == '\n') || (x == '\r') || 
+           (x == ';')  || (x == '\0');
+}
+
 int jump(int addr)
 {
     if (addr < MAX_INSTR)
@@ -410,7 +555,7 @@ void push(int x)
     }
     else
     {
-        printf("Stack is full.\n");
+        printf("Error: Stack is full.\n");
     }
 }
 
@@ -424,7 +569,7 @@ int pop(void)
     }
     else
     {
-        printf("Stack is empty.\n");
+        printf("Error: Stack is empty.\n");
         return NIL;
     }
 }
@@ -437,7 +582,7 @@ int peek(void)
     }
     else
     {
-        printf("Stack is empty.\n");
+        printf("Error: Stack is empty.\n");
         return NIL;
     }
 }
