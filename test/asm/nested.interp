@@ -1,0 +1,34 @@
+;Simple label example involving nested loops.
+PUSH 0
+outer_loop:
+    PUSH 1
+    ADD
+    DUP
+    
+    PUSH 0
+    inner_loop:
+        PUSH 1
+        ADD
+        OUT
+        
+        ;Space
+        PUSH 32 ;ASCII Space
+        COUT
+        POP
+        
+        DUP
+        PUSH 3
+        CMP
+    @inner_loop
+    JZ
+    POP
+    
+    ;Newline
+    PUSH 10 ;ASCII LF
+    COUT
+    POP
+    
+    PUSH 3
+    CMP
+@outer_loop
+JZ

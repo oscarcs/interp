@@ -1,0 +1,29 @@
+;Simple subroutine example.
+@main
+CALL
+
+sub:
+    PUSH 92
+    PUSH 18
+    ADD
+    OUT
+    @newline
+    CALL
+    POP
+RET
+
+newline:
+    PUSH 10 ;ASCII LF
+    COUT
+    POP
+RET
+
+main:
+    PUSH 29
+    PUSH 11
+    ADD
+    @sub
+    CALL
+    OUT
+    @newline
+    CALL
