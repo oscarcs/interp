@@ -1,0 +1,14 @@
+;Test case-sensitivity of instructions.
+push 0
+loop:
+    push 1
+    add
+    out
+    push 10 ;ASCII LF
+    cout
+    pop
+    dup
+    push 10
+    cmp
+@loop
+jz
