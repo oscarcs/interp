@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define NIL 9920901
 #define MAX_DEPTH 100
@@ -28,6 +29,7 @@ int is_labelref(char* line);
 int is_instr(char* line);
 int is_blank(char* line);
 int is_terminating(char x);
+void upper_str(char* str);
 /* Assembler-specific: */
 int labelref_to_addr(char* label_name);
 int instr_to_code(int pos, char* line);
@@ -458,6 +460,14 @@ int is_terminating(char x)
            (x == ';')  || (x == '\0');
 }
 
+void upper_str(char* str)
+{
+    for (int i = 0; str[i]; i++)
+    {
+        str[i] = toupper(str[i]);
+    }
+}
+
 int labelref_to_addr(char* label_name)
 {
     int addr = NIL;
@@ -548,6 +558,8 @@ int instr_to_code(int pos, char* line)
         arg1 = (int) strtol(arg, NULL, 10);
     }
 
+    upper_str(instr);
+    
     /*
      * @OPTIMIZATION
      * Instruction comparison ladder. Could be replaced with length or
